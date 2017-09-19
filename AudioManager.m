@@ -35,11 +35,6 @@ NSString *const AudioManagerRecordPath = @"recordPath";
 }
 
 #pragma mark - 录音
-/**
- *  请求录音权限
- *
- *  @return YES:允许。NO：拒绝
- */
 - (BOOL)requestRecordPermission
 {
     __block BOOL permission;
@@ -49,14 +44,12 @@ NSString *const AudioManagerRecordPath = @"recordPath";
     return permission;
 }
 
-//开始录音
 - (void)startRecordingWithPath:(NSString *)path
 {
     if (![self requestRecordPermission] || _audioRecorder.recording) {
         return;
     }
     [self setAudioSessionCategory:AVAudioSessionCategoryRecord];
-//    NSString *path = [[[EBCacheManager defaultManager] pathForCacheType:AudioCacheType] stringByAppendingPathComponent:[[self stringFromDate:[NSDate date]] stringByAppendingPathExtension:@"wav"]];
     _recordPathURL = [NSURL URLWithString:path];
     NSError *err;
     _audioRecorder = [[AVAudioRecorder alloc] initWithURL:_recordPathURL settings:[self settingForRecordingSession] error:&err];
@@ -70,11 +63,6 @@ NSString *const AudioManagerRecordPath = @"recordPath";
     [_audioRecorder record];
 }
 
-/**
- *  停止录音
- *
- *  @return 返回字典包含录音长度（AudioManagerRecordTimeLength），录音存放的路径(AudioManagerRecordPath)
- */
 - (NSDictionary *)stopRecording
 {
     if (!_audioRecorder.isRecording) {
@@ -101,21 +89,16 @@ NSString *const AudioManagerRecordPath = @"recordPath";
     return dict;
 }
 
-//暂停录音
 - (void)pauseRecording
 {
     [_audioRecorder pause];
 }
 
-//重新开始录音
 - (void)resumeRecording
 {
     [_audioRecorder record];
 }
 
-/**
- *  取消录音
- */
 - (void)cancelRecording
 {
     [_audioRecorder stop];
@@ -124,18 +107,12 @@ NSString *const AudioManagerRecordPath = @"recordPath";
     [fileManager removeItemAtURL:_recordPathURL error:&err];
 }
 
-//当前录音时间
 - (NSTimeInterval)currentTimeOfRecording
 {
     return [_audioRecorder currentTime];
 }
 
 #pragma mark - 播放
-/**
- *  播放放在path处的音频文件
- *
- *  @param path 音频文件所在的绝对路径
- */
 - (void)playAudioAtPath:(NSString *)path
 {
     if (_audioPlayer != nil && _audioPlayer.isPlaying) {
@@ -168,47 +145,36 @@ NSString *const AudioManagerRecordPath = @"recordPath";
     NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfig];
     NSURLSessionDataTask *dataTask = [session dataTaskWithURL:[NSURL URLWithString:urlString] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-//        NSString *path = [[[EBCacheManager defaultManager] pathForCacheType:AudioCacheType] stringByAppendingPathComponent:[[self stringFromDate:[NSDate date]] stringByAppendingPathExtension:@"amr"]];
         if  ([data writeToFile:path atomically:YES]) {
-//            NSString *wavPath = [VoiceConverter amrToWav:path];
             [self playAudioAtPath:path];
         }
     }];
     [dataTask resume];
 }
 
-/**
- *  停止播放
- */
 - (void)stopPlay
 {
     [_audioPlayer stop];
     [_playTimer invalidate];
 }
 
-/**
- *  暂停播放
- */
 - (void)pausePlay
 {
     [_audioPlayer pause];
     [_playTimer invalidate];
 }
 
-//重新开始播放
 - (void)resumePlay
 {
     [_audioPlayer play];
     [self initAndFirePlayTimer];
 }
 
-//音频时长
 - (NSTimeInterval)audioDuration
 {
     return _audioPlayer.duration;
 }
 
-//当前播放时间
 - (NSTimeInterval)currentTimeOfPlay
 {
     return _audioPlayer.currentTime;
@@ -261,9 +227,6 @@ NSString *const AudioManagerRecordPath = @"recordPath";
     return [dateFormater stringFromDate:date];
 }
 
-/**
- *  录音设置
- */
 - (NSDictionary *)settingForRecordingSession
 {
     return [NSDictionary dictionaryWithObjectsAndKeys:
@@ -276,9 +239,6 @@ NSString *const AudioManagerRecordPath = @"recordPath";
             nil];
 }
 
-/**
- *  重新启动播放录音的定时器
- */
 - (void)initAndFirePlayTimer
 {
     if (_playTimer != nil) {
